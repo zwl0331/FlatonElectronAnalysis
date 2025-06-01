@@ -1,0 +1,2 @@
+/pnfs/mu2e/persistent/users/mu2epro/workflow/default/outstage/77020096/00/00010/nts.mu2e.description.MDC2020au_perfect_v1_3.001210_00000017.root
+/pnfs/mu2e/persistent/users/mu2epro/workflow/default/outstage/77020096/00/00015/nts.mu2e.description.MDC2020au_perfect_v1_3.001210_00000008.root
