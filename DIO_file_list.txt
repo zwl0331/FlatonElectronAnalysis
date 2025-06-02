@@ -1,0 +1,5 @@
+/exp/mu2e/data/users/wzhou2/data/pure_DIO/part1.root
+/exp/mu2e/data/users/wzhou2/data/pure_DIO/part2.root
+/exp/mu2e/data/users/wzhou2/data/pure_DIO/part3.root
+/exp/mu2e/data/users/wzhou2/data/pure_DIO/part4.root
+/exp/mu2e/data/users/wzhou2/data/pure_DIO/part5.root

@@ -126,4 +126,4 @@ def plot_fit_result(data_np, fit_range, PDF, N):
     ax1.hist(data_np, color='black', bins=n_bins, range=fit_range, histtype='step')
     ax1.errorbar(data_bincenter, data_hist, yerr=np.sqrt(data_hist), color='None', ecolor='black', capsize=3)
 
-    ax1.plot(data_bincenter, (PDF.pdf(data_bincenter) * N* scale).numpy(), '-r')
+    ax1.plot(data_bincenter, (PDF.pdf(data_bincenter, norm_range=fit_range) * N* scale).numpy(), '-r')
