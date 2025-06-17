@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 import awkward as ak
+import dill as pickle
 import matplotlib.pyplot as plt
 
 from import_module import ImportClass
@@ -133,25 +134,64 @@ def main(args):
     # momentum fit range mask (optional)
     fit_range = (args.fitrange_low[0], args.fitrange_hi[0])
     in_range  = (data_np >= fit_range[0]) & (data_np <= fit_range[1])
-    # data_np   = data_np[in_range]
-    # data_mc_np = data_mc_np[in_range]
+    #data_np   = data_np[in_range]
+    #data_mc_np = data_mc_np[in_range]
 
     
+    result, PDF, N = fit_module.Unbinned_fit_mom(data_mc_np, (95, 104.97))
+    result.errors()  # calculate errors for the fit result
+    print("Momentum fit result:", result)
+    print("RESULT MESSAGE:", result.message)
+    print("RESULT STATUS:", result.valid)
+    # save the fit result
+    with open("fit_result.txt", "w") as f:
+        f.write(str(result))
+
+    data_bin_center, residual = fit_module.plot_fit_result(data_mc_np, (95, 104.97), PDF, N, log_scale=True)
+    plt.savefig("plot_mom_fit_result.png")
+
+    # plot the 1D distribution of residuals
+    fig, ax = plt.subplots()
+    ax.hist(residual, bins=50, range=(-3, 3), histtype="step", color="gray")
+
+    ax.set_xlabel("Residuals [MeV/c]")
+    ax.set_ylabel("Counts")
+    ax.set_title("Fit Residuals")
+
+    plt.savefig("plot_mom_residuals.png")
+    plt.show()
+    
+    
+    '''
     # ------------------------------------------------------------------
     # Efficiency fit (Chebyshev)
     # ------------------------------------------------------------------
     result_eff, PDF_eff, N_eff = fit_module.Unbinned_fit_efficiency(
-        data_mc_np, (95, 105), degree=4)
+        data_mc_np, (95, 104.97), degree=4)
+    param_errors_eff, _ = result_eff.errors()
+    
+    # save the fit result
+    ## freeze the parameters to avoid accidental changes
+    for p in PDF_eff.get_params(floating = True):
+        p.float = False
+    ## save the fit result to a pickle file
+    with open("efficiency_PDF.pkl", "wb") as f:
+        pickle.dump(PDF_eff, f)
 
     print("Efficiency fit result:", result_eff)
     print("RESULT MESSAGE:", result_eff.message)
     print("RESULT STATUS:", result_eff.valid)
 
-    fit_module.plot_fit_result(data_mc_np, (95, 105), PDF_eff, N_eff)
+    ## record the result_eff to a text file
+    with open("efficiency_fit_result.txt", "w") as f:
+        f.write(str(result_eff))
+
+    fit_module.plot_fit_result(data_mc_np, (95, 104.97), PDF_eff, N_eff)
     plt.savefig("plot_efficiency_fit_result.png")
     plt.show()
-    
+    '''
 
+    '''
     # ------------------------------------------------------------------
     # Basic plots
     # ------------------------------------------------------------------
@@ -185,14 +225,28 @@ def main(args):
     plt.show()
 
     result, PDF, N = fit_module.Unbinned_fit_resolution_function(diff, (-15, 1), 0)
+
+    # save the fit result
+    ## freeze the parameters to avoid accidental changes
+    for p in PDF.get_params(floating=True):
+        p.float = False
+    ## save the fit result to a pickle file
+    with open("resolution_PDF.pkl", "wb") as f:
+        pickle.dump(PDF, f)
+
+    result.errors()  # calculate errors for the fit result
     print("Resolution fit:", result)
     print("RESULT MESSAGE:", result.message)
     print("RESULT STATUS:", result.valid)
 
+    ## record the result to a text file
+    with open("resolution_fit_result.txt", "w") as f:
+        f.write(str(result))
+
     fit_module.plot_fit_result(diff, (-15, 1), PDF, N)
     plt.savefig("plot_fit_result.png")
     plt.show()
-
+    '''
 
 def PrintArgs(args):
     print("========= Analyzing with user opts: ===========")
