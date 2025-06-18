@@ -2,11 +2,13 @@ import argparse
 import numpy as np
 import awkward as ak
 import dill as pickle
+from scipy.stats import norm 
 import matplotlib.pyplot as plt
 
-from import_module import ImportClass
-from cut_module import CutClass
 import fit_module
+from cut_module import CutClass
+from import_module import ImportClass
+from statistical_analysis_module import analyze_residuals
 
 def stream_files(args):
     """Iterate through the file list one ROOT file at a time, apply all cuts, and
@@ -150,46 +152,12 @@ def main(args):
     data_bin_center, residual = fit_module.plot_fit_result(data_mc_np, (95, 104.97), PDF, N, log_scale=True)
     plt.savefig("plot_mom_fit_result.png")
 
-    # plot the 1D distribution of residuals
-    fig, ax = plt.subplots()
-    ax.hist(residual, bins=50, range=(-3, 3), histtype="step", color="gray")
 
-    ax.set_xlabel("Residuals [MeV/c]")
-    ax.set_ylabel("Counts")
-    ax.set_title("Fit Residuals")
+    _, _, chi2_value, dof, p_value = analyze_residuals(residual)
 
-    plt.savefig("plot_mom_residuals.png")
-    plt.show()
-    
-    
-    '''
-    # ------------------------------------------------------------------
-    # Efficiency fit (Chebyshev)
-    # ------------------------------------------------------------------
-    result_eff, PDF_eff, N_eff = fit_module.Unbinned_fit_efficiency(
-        data_mc_np, (95, 104.97), degree=4)
-    param_errors_eff, _ = result_eff.errors()
-    
-    # save the fit result
-    ## freeze the parameters to avoid accidental changes
-    for p in PDF_eff.get_params(floating = True):
-        p.float = False
-    ## save the fit result to a pickle file
-    with open("efficiency_PDF.pkl", "wb") as f:
-        pickle.dump(PDF_eff, f)
-
-    print("Efficiency fit result:", result_eff)
-    print("RESULT MESSAGE:", result_eff.message)
-    print("RESULT STATUS:", result_eff.valid)
-
-    ## record the result_eff to a text file
-    with open("efficiency_fit_result.txt", "w") as f:
-        f.write(str(result_eff))
-
-    fit_module.plot_fit_result(data_mc_np, (95, 104.97), PDF_eff, N_eff)
-    plt.savefig("plot_efficiency_fit_result.png")
-    plt.show()
-    '''
+    print("Chi2: " + str(chi2_value) + "\n")
+    print("DoF: " + str(dof) + "\n")
+    print("p value: " + str(p_value) + "\n")
 
     '''
     # ------------------------------------------------------------------
