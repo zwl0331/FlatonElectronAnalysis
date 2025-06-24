@@ -150,7 +150,7 @@ def Unbinned_fit_efficiency(data_mc_np, fit_range, degree = 4):
     return result, PDF, N
 
 
-def Unbinned_fit_mom(data_np, fit_range):
+def Unbinned_fit_mom(data_np, fit_range, resolution_path = None):
     efficiceny_result_path = "/exp/mu2e/app/users/wzhou2/FlatElectronAnalysis/output/flat_electron_no_cut/efficiency_PDF.pkl"
     obs_mom = zfit.Space('mom', limits=fit_range)
 
@@ -161,13 +161,23 @@ def Unbinned_fit_mom(data_np, fit_range):
         pars.append(zfit.Parameter(parameter + "_DIO", default_mom_components['DIO'][parameter][0],
                                    default_mom_components['DIO'][parameter][1],
                                    default_mom_components['DIO'][parameter][2]))
-    theoretical_pdf = poly58(obs=obs_mom, a6 = pars[0], a7 = pars[1], a8 = pars[2])
+    theoretical_pdf = poly58(obs=obs_mom, a6=pars[0], a7=pars[1], a8=pars[2])
     with open(efficiceny_result_path, "rb") as f:
         efficiency_pdf = pickle.load(f)
     ## product pdf
     N = zfit.Parameter('N', 10000, 0, 1e10)
     pars.append(N)
-    PDF = zfit.pdf.ProductPDF([theoretical_pdf, efficiency_pdf], extended=N)
+
+    if resolution_path is None:
+        PDF = zfit.pdf.ProductPDF([theoretical_pdf, efficiency_pdf], extended=N)
+    else:
+        PDF = zfit.pdf.ProductPDF([theoretical_pdf, efficiency_pdf])
+        # load the resolution PDF
+        with open(resolution_path, "rb") as f:
+            resolution_pdf = pickle.load(f)
+        # convolution
+        resolution_pdf = resolution_pdf.copy(obs=zfit.Space('mom', limits=(-8, 1)))
+        PDF = zfit.pdf.FFTConvPDFV1(PDF, resolution_pdf, obs=obs_mom, extended=N, n=1000)
 
     # Convert data to zfit Data
     data_zfit = zfit.Data.from_numpy(array=data_np, obs=obs_mom)
@@ -194,6 +204,9 @@ def plot_fit_result(data_np, fit_range, PDF, N, log_scale=False):
     ax1.errorbar(data_bincenter, data_hist, yerr=np.sqrt(data_hist), color='None', ecolor='black', capsize=3)
 
     ax1.plot(data_bincenter, (PDF.pdf(data_bincenter, norm_range=fit_range) * N* scale).numpy(), '-r')
+
+    for bincenter in data_bincenter:
+        print(f"Bin center: {bincenter}, PDF value: {PDF.pdf(bincenter, norm_range=fit_range).numpy() * N * scale}, Data value: {data_hist[np.digitize(bincenter, data_binedge) - 1]}")
 
     # plot the residuals
     residuals = (data_hist - PDF.pdf(data_bincenter, norm_range=fit_range).numpy() * N * scale) / np.sqrt(data_hist)

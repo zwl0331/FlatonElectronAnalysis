@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import fit_module
 from cut_module import CutClass
 from import_module import ImportClass
-from statistical_analysis_module import analyze_residuals
+from statistical_analysis_module import analyze_residuals, anderson_darling_gof
 
 def stream_files(args):
     """Iterate through the file list one ROOT file at a time, apply all cuts, and
@@ -133,6 +133,7 @@ def main(args):
     # read & process files one at a time
     data_np, data_mc_np = stream_files(args)
 
+    
     # momentum fit range mask (optional)
     fit_range = (args.fitrange_low[0], args.fitrange_hi[0])
     in_range  = (data_np >= fit_range[0]) & (data_np <= fit_range[1])
@@ -140,7 +141,7 @@ def main(args):
     #data_mc_np = data_mc_np[in_range]
 
     
-    result, PDF, N = fit_module.Unbinned_fit_mom(data_mc_np, (95, 104.97))
+    result, PDF, N = fit_module.Unbinned_fit_mom(data_mc_np, (95, 104.97), None) #"/exp/mu2e/app/users/wzhou2/FlatElectronAnalysis/output/flat_electron_no_cut/resolution_PDF.pkl")
     result.errors()  # calculate errors for the fit result
     print("Momentum fit result:", result)
     print("RESULT MESSAGE:", result.message)
@@ -149,16 +150,14 @@ def main(args):
     with open("fit_result.txt", "w") as f:
         f.write(str(result))
 
-    data_bin_center, residual = fit_module.plot_fit_result(data_mc_np, (95, 104.97), PDF, N, log_scale=True)
-    plt.savefig("plot_mom_fit_result.png")
+    #fit_module.plot_fit_result(data_np, (95, 104.97), PDF, N, log_scale=True)
+    #plt.savefig("plot_mom_fit_result.png")
 
-
-    _, _, chi2_value, dof, p_value = analyze_residuals(residual)
-
-    print("Chi2: " + str(chi2_value) + "\n")
-    print("DoF: " + str(dof) + "\n")
-    print("p value: " + str(p_value) + "\n")
-
+    A2_obs, p_value, fig = anderson_darling_gof(data_mc_np, PDF, 1000)
+    print(f"AD test: A2_obs = {A2_obs}, p-value = {p_value}")
+    fig.savefig("plot_anderson_darling_gof.png")
+    fig.show()
+    
     '''
     # ------------------------------------------------------------------
     # Basic plots
