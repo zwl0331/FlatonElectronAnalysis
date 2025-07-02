@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 import fit_module
 from cut_module import CutClass
 from import_module import ImportClass
-from statistical_analysis_module import analyze_residuals, anderson_darling_gof
 
 def stream_files(args):
     """Iterate through the file list one ROOT file at a time, apply all cuts, and
@@ -140,8 +139,8 @@ def main(args):
     #data_np   = data_np[in_range]
     #data_mc_np = data_mc_np[in_range]
 
-    
-    result, PDF, N = fit_module.Unbinned_fit_mom(data_mc_np, (95, 104.97), None) #"/exp/mu2e/app/users/wzhou2/FlatElectronAnalysis/output/flat_electron_no_cut/resolution_PDF.pkl")
+
+    result, PDF, N = fit_module.Unbinned_fit_mom(data_np, (95, 104.97), "/exp/mu2e/app/users/wzhou2/FlatElectronAnalysis/output/flat_electron_no_cut/resolution_PDF.pkl")
     result.errors()  # calculate errors for the fit result
     print("Momentum fit result:", result)
     print("RESULT MESSAGE:", result.message)
@@ -150,13 +149,102 @@ def main(args):
     with open("fit_result.txt", "w") as f:
         f.write(str(result))
 
-    #fit_module.plot_fit_result(data_np, (95, 104.97), PDF, N, log_scale=True)
-    #plt.savefig("plot_mom_fit_result.png")
+    fit_module.plot_fit_result(data_np, (95, 104.97), PDF, N, log_scale=True)
+    plt.savefig("plot_mom_fit_result.png")
 
-    A2_obs, p_value, fig = anderson_darling_gof(data_mc_np, PDF, 1000)
-    print(f"AD test: A2_obs = {A2_obs}, p-value = {p_value}")
-    fig.savefig("plot_anderson_darling_gof.png")
-    fig.show()
+    # statistical tests
+    import numpy as np
+    from scipy.interpolate import interp1d
+
+    # --- 1) your fit range ---
+    low, high = fit_range  # e.g. (95, 104.97)
+
+    # --- 2) build a fine x-grid over [low, high] ---
+    x_grid = np.linspace(low, high, 2000)
+
+    # --- 3) allocate cdf_vals and set CDF=0 at the very first point ---
+    cdf_vals = np.empty_like(x_grid)
+    cdf_vals[0] = 0.0
+
+    # --- 4) fill in the rest by integrating ---
+    for i, xi in enumerate(x_grid[1:], start=1):
+        # now xi > low, so integrate is legal
+        integ = PDF.integrate(limits=(low, float(xi)), norm=(low, high))
+        # `.integrate` returns a TensorFlow tensor → convert to numpy float
+        cdf_vals[i] = integ.numpy()
+
+    # (Optional sanity check: ensure the final CDF is ~1)
+    # print("CDF at high:", cdf_vals[-1])
+
+    # --- 5) build your “black-box” CDF function ---
+    model_cdf = interp1d(
+        x_grid,
+        cdf_vals,
+        bounds_error=False,
+        fill_value=(0.0, 1.0),
+    )
+    
+    # limit data_mc_np to the fit range for the tests
+    data_np = data_np[(data_np >= fit_range[0]) & (data_np <= fit_range[1])]
+
+    from scipy.stats import cramervonmises
+    print("Performing Cramér-von Mises test...")
+    res = cramervonmises(data_np, model_cdf)
+    print("CvM stat:", res.statistic, "p-value:", res.pvalue)
+
+    # save the test result as text
+    with open("cramer_von_mises_result.txt", "w") as f:
+        f.write(f"CvM stat: {res.statistic}\np-value: {res.pvalue}\n")
+
+    from scipy.stats import kstest
+
+    # assume you’ve already built:
+    #   x_grid, cdf_vals = ...  # via PDF.integrate + interp1d
+    #   model_cdf = interp1d(x_grid, cdf_vals,
+    #                        bounds_error=False,
+    #                        fill_value=(0.0, 1.0))
+
+    # ensure it's a plain callable CDF:
+    # interp1d *is* callable, so you can pass it directly:
+    dist_cdf = model_cdf
+
+    # your data array (unsorted is fine; kstest will sort internally):
+    data = data_np  
+
+    # run KS test
+    res = kstest(data, dist_cdf)
+
+    print(f"KS statistic D = {res.statistic:.4f}")
+    print(f"p-value       = {res.pvalue:.4f}")
+
+    # save the test result as text
+    with open("kolmogorov_smirnov_result.txt", "w") as f:
+        f.write(f"KS statistic D = {res.statistic}\np-value = {res.pvalue}\n")
+
+    '''
+    # 2) attach a .cdf attribute pointing back to itself
+    model_cdf.cdf = model_cdf
+
+    # 3) now pass it directly
+    from statsmodels.stats.diagnostic import anderson_statistic
+    A2 = anderson_statistic(data_mc_np, dist=model_cdf, fit=False)
+    def ad_pvalue_large_n(A2):
+        """Approximate p-value for Anderson–Darling A², valid for large n."""
+        if A2 < 0.2:
+            return 1.0 - np.exp(-13.436 + 101.14*A2 - 223.73*A2**2)
+        elif A2 < 0.34:
+            return 1.0 - np.exp(-8.318 + 42.796*A2 - 59.938*A2**2)
+        elif A2 < 0.6:
+            return np.exp(0.9177 - 4.279*A2 - 1.38*A2**2)
+        else:
+            return np.exp(1.2937 - 5.709*A2 + 0.0186*A2**2)
+
+    p_value = ad_pvalue_large_n(A2)
+    print(f"A² = {A2:.3f},  p ≃ {p_value:.3f}")
+
+    # save the test result as text
+    with open("anderson_darling_result.txt", "w") as f:
+        f.write(f"A² = {A2}\np-value ≃ {p_value}\n")'''
     
     '''
     # ------------------------------------------------------------------
