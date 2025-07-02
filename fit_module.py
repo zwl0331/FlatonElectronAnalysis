@@ -114,6 +114,7 @@ def Unbinned_fit_resolution_function(data_np, fit_range, mom_resolution = 0):
     minimizer = zfit.minimize.Minuit(
         gradient=True,    # use Minuit’s own gradient
         mode=2,           # full Hesse
+        tol=1e-10,        # tighter EDM goal
         maxiter=2000      # more calls
     )
     result = minimizer.minimize(loss, params=zpars_res.values())

@@ -138,6 +138,7 @@ def main(args):
     data_np = load_from_pickle("data_reco.pkl")
     data_mc_np = load_from_pickle("data_mc.pkl")
 
+    '''
     result, PDF, N = fit_module.Unbinned_fit_mom(data_mc_np, (95, 104.97)) ##, "/exp/mu2e/app/users/wzhou2/FlatElectronAnalysis/output/flat_electron_no_cut/resolution_PDF.pkl")
     result.errors()  # calculate errors for the fit result
     print("Momentum fit result:", result)
@@ -163,6 +164,7 @@ def main(args):
     # save the test result as text
     with open("kolmogorov_smirnov_result.txt", "w") as f:
         f.write(f"KS statistic D = {results['ks']['statistic']}\np-value = {results['ks']['pvalue']}\n")
+    '''
 
     '''
     # 2) attach a .cdf attribute pointing back to itself
@@ -202,9 +204,12 @@ def main(args):
     plt.show()
     # ------------------------------------------------------------------
     '''
-    '''
+    
     # ----------------------------------------------------
     # Momentum resolution fit
+    ## filter the data_np to be within the fit range
+    data_mc_np = data_mc_np[(data_np > args.fitrange_low[0]) & (data_np < args.fitrange_high[0])]
+    data_np = data_np[(data_np > args.fitrange_low[0]) & (data_np < args.fitrange_high[0])]
     diff = data_mc_np - data_np
     result, PDF, N = fit_module.Unbinned_fit_resolution_function(diff, (-15, 1), 0)
 
@@ -213,7 +218,7 @@ def main(args):
         p.float = False
     save_to_pickle(result, "resolution_fit_result.pkl")
 
-    result.errors()  # calculate errors for the fit result
+    #result.errors()  # calculate errors for the fit result
     print("Resolution fit:", result)
     print("RESULT MESSAGE:", result.message)
     print("RESULT STATUS:", result.valid)
@@ -222,11 +227,26 @@ def main(args):
     with open("resolution_fit_result.txt", "w") as f:
         f.write(str(result))
 
-    fit_module.plot_fit_result(diff, (-15, 1), PDF, N)
-    plt.savefig("plot_fit_result.png")
+    plot_module.plot_fit_result(diff, (-15, 1), PDF, N)
+    plt.savefig("plot_resolution_fit_result.png")
     plt.show()
+
+    # statistical analysis
+    results = perform_goodness_of_fit_tests(
+        diff,   
+        PDF,
+        (-15, 1),
+        grid_size=2000,
+    )
+    print("CvM →", results["cramer_von_mises"])
+    print("KS  →", results["ks"])
+    # save the test result as text
+    with open("resolution_kolmogorov_smirnov_result.txt", "w") as f:
+        f.write(f"KS statistic D = {results['ks']['statistic']}\np-value = {results['ks']['pvalue']}\n")
+    with open("resolution_cramer_von_mises_result.txt", "w") as f:
+        f.write(f"CvM statistic = {results['cramer_von_mises']['statistic']}\np-value = {results['cramer_von_mises']['pvalue']}\n")
     # -----------------------------------------------------
-    '''
+    
 
 def PrintArgs(args):
     print("========= Analyzing with user opts: ===========")
