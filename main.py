@@ -131,9 +131,9 @@ def main(args):
     """Run the full analysis with streaming input so memory never explodes."""
 
     # read & process files one at a time
-    #data_np, data_mc_np = stream_files(args)
-    #save_to_pickle(data_np, "data_reco.pkl")
-    #save_to_pickle(data_mc_np, "data_mc.pkl")
+    data_np, data_mc_np = stream_files(args)
+    save_to_pickle(data_np, "data_reco.pkl")
+    save_to_pickle(data_mc_np, "data_mc.pkl")
 
     data_np = load_from_pickle("data_reco.pkl")
     data_mc_np = load_from_pickle("data_mc.pkl")
@@ -208,9 +208,7 @@ def main(args):
     # ----------------------------------------------------
     # Momentum resolution fit
     ## filter the data_np to be within the fit range
-    data_mc_np = data_mc_np[(data_np > args.fitrange_low[0]) & (data_np < args.fitrange_high[0])]
-    data_np = data_np[(data_np > args.fitrange_low[0]) & (data_np < args.fitrange_high[0])]
-    diff = data_mc_np - data_np
+    diff =  data_np - data_mc_np
     result, PDF, N = fit_module.Unbinned_fit_resolution_function(diff, (-15, 1), 0)
 
     # save the fit result
@@ -229,8 +227,9 @@ def main(args):
 
     plot_module.plot_fit_result(diff, (-15, 1), PDF, N)
     plt.savefig("plot_resolution_fit_result.png")
-    plt.show()
+    #plt.show()
 
+    print("Performing statistical tests on the resolution fit...")
     # statistical analysis
     results = perform_goodness_of_fit_tests(
         diff,   

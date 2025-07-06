@@ -46,8 +46,7 @@ def plot_residuals_with_gaussian(residual, bins=15, range=(-4, 4), filename="plo
 
     return fig, ax
 
-def plot_fit_result(data_np, fit_range, PDF, N, log_scale=False):
-    n_bins = 50
+def plot_fit_result(data_np, fit_range, PDF, N, log_scale=False, n_bins = 50):
     scale = 1 / n_bins * (fit_range[1] - fit_range[0])
     data_hist, data_binedge = np.histogram(data_np, bins=n_bins, range=fit_range)
     data_bincenter = 0.5 * (data_binedge[1:] + data_binedge[:-1])
