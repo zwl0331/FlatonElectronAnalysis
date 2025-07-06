@@ -131,9 +131,9 @@ def main(args):
     """Run the full analysis with streaming input so memory never explodes."""
 
     # read & process files one at a time
-    data_np, data_mc_np = stream_files(args)
-    save_to_pickle(data_np, "data_reco.pkl")
-    save_to_pickle(data_mc_np, "data_mc.pkl")
+    #data_np, data_mc_np = stream_files(args)
+    #save_to_pickle(data_np, "data_reco.pkl")
+    #save_to_pickle(data_mc_np, "data_mc.pkl")
 
     data_np = load_from_pickle("data_reco.pkl")
     data_mc_np = load_from_pickle("data_mc.pkl")
@@ -208,13 +208,23 @@ def main(args):
     # ----------------------------------------------------
     # Momentum resolution fit
     ## filter the data_np to be within the fit range
+    data_mc_bound_low = 101.7
+    data_mc_bound_high = 110
+    mask = (data_mc_np >= data_mc_bound_low) & (data_mc_np <= data_mc_bound_high)
+    data_np = data_np[mask]
+    data_mc_np = data_mc_np[mask]
+    ## plot the momentum distribution
+    #fig, ax = plot_module.plotmom_data_only(data_mc_np, (95, 105))
+    #plt.show()
+
+
     diff =  data_np - data_mc_np
     result, PDF, N = fit_module.Unbinned_fit_resolution_function(diff, (-15, 1), 0)
 
     # save the fit result
     for p in PDF.get_params(floating=True):
         p.float = False
-    save_to_pickle(result, "resolution_fit_result.pkl")
+    #save_to_pickle(result, "resolution_fit_result.pkl")
 
     #result.errors()  # calculate errors for the fit result
     print("Resolution fit:", result)
@@ -226,8 +236,8 @@ def main(args):
         f.write(str(result))
 
     plot_module.plot_fit_result(diff, (-15, 1), PDF, N)
-    plt.savefig("plot_resolution_fit_result.png")
-    #plt.show()
+    #plt.savefig("plot_resolution_fit_result.png")
+    plt.show()
 
     print("Performing statistical tests on the resolution fit...")
     # statistical analysis
@@ -240,12 +250,11 @@ def main(args):
     print("CvM →", results["cramer_von_mises"])
     print("KS  →", results["ks"])
     # save the test result as text
-    with open("resolution_kolmogorov_smirnov_result.txt", "w") as f:
-        f.write(f"KS statistic D = {results['ks']['statistic']}\np-value = {results['ks']['pvalue']}\n")
-    with open("resolution_cramer_von_mises_result.txt", "w") as f:
-        f.write(f"CvM statistic = {results['cramer_von_mises']['statistic']}\np-value = {results['cramer_von_mises']['pvalue']}\n")
+    #with open("resolution_kolmogorov_smirnov_result.txt", "w") as f:
+        #f.write(f"KS statistic D = {results['ks']['statistic']}\np-value = {results['ks']['pvalue']}\n")
+    #with open("resolution_cramer_von_mises_result.txt", "w") as f:
+        #f.write(f"CvM statistic = {results['cramer_von_mises']['statistic']}\np-value = {results['cramer_von_mises']['pvalue']}\n")
     # -----------------------------------------------------
-    
 
 def PrintArgs(args):
     print("========= Analyzing with user opts: ===========")
