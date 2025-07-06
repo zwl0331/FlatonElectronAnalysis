@@ -1,22 +1,22 @@
 [1mFitResult[22m of
-<ExtendedUnbinnedNLL model=[<zfit.<class 'fit_module.MomResolution'>  params=[N_1_res, N_2_res, a_0_res, alpha_1_res, alpha_2_res, b_0_res, delta_p_0_res]] data=[<zfit.Data: Data obs=('mom_diff',) shape=(48157, 1)>] constraints=[]> 
+<ExtendedUnbinnedNLL model=[<zfit.<class 'fit_module.MomResolution'>  params=[N_1_res, N_2_res, a_0_res, alpha_1_res, alpha_2_res, b_0_res, delta_p_0_res]] data=[<zfit.Data: Data obs=('mom_diff',) shape=(136506, 1)>] constraints=[]> 
 with
 <Minuit Minuit tol=1e-10>
 
 ╒═════════╤═════════════╤══════════════════╤═════════╤══════════════════════════════╕
 │  valid  │  converged  │  param at limit  │   edm   │   approx. fmin (full | opt.) │
 ╞═════════╪═════════════╪══════════════════╪═════════╪══════════════════════════════╡
-│  [48;5;10mTrue[0m   │    True[0m     │      False[0m       │ 9.2e-10 │         60022.07 | -27674.78 │
+│  [48;5;10mTrue[0m   │    True[0m     │      False[0m       │ 4.7e-11 │        163678.85 | -221120.6 │
 ╘═════════╧═════════════╧══════════════════╧═════════╧══════════════════════════════╛
 
 [1mParameters
 [22mname             value  (rounded)    at limit
 -------------  ------------------  ----------
-N                           48157       False[0m
-delta_p_0_res           -0.547865       False[0m
-a_0_res                  0.342286       False[0m
-b_0_res                     4.364       False[0m
-alpha_1_res               1.28163       False[0m
-alpha_2_res              0.541194       False[0m
-N_1_res                   1.94943       False[0m
-N_2_res                   2.31233       False[0m
+N                          136506       False[0m
+delta_p_0_res           -0.584051       False[0m
+a_0_res                    0.3338       False[0m
+b_0_res                    4.5886       False[0m
+alpha_1_res               1.19744       False[0m
+alpha_2_res              0.484425       False[0m
+N_1_res                   2.17406       False[0m
+N_2_res                   3.17713       False[0m
