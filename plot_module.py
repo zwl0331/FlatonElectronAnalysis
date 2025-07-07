@@ -46,7 +46,7 @@ def plot_residuals_with_gaussian(residual, bins=15, range=(-4, 4), filename="plo
 
     return fig, ax
 
-def plot_fit_result(data_np, fit_range, PDF, N, log_scale=False, n_bins = 50):
+def plot_fit_result(data_np, fit_range, PDF, N, log_scale=False, n_bins = 50, use_integrated=False):
     scale = 1 / n_bins * (fit_range[1] - fit_range[0])
     data_hist, data_binedge = np.histogram(data_np, bins=n_bins, range=fit_range)
     data_bincenter = 0.5 * (data_binedge[1:] + data_binedge[:-1])
@@ -55,10 +55,18 @@ def plot_fit_result(data_np, fit_range, PDF, N, log_scale=False, n_bins = 50):
     ax1.hist(data_np, color='black', bins=n_bins, range=fit_range, histtype='step')
     ax1.errorbar(data_bincenter, data_hist, yerr=np.sqrt(data_hist), color='None', ecolor='black', capsize=3)
 
-    ax1.plot(data_bincenter, (PDF.pdf(data_bincenter, norm_range=fit_range) * N* scale).numpy(), '-r')
+    fit_value_at_bincenter = np.array([])
+    if use_integrated:
+        for low, high in zip(data_binedge[:-1], data_binedge[1:]):
+            averaged_value = (PDF.integrate(limits=(low, high), norm_range=fit_range) * N * scale).numpy() / (high - low)
+            fit_value_at_bincenter = np.append(fit_value_at_bincenter, averaged_value)
+        ax1.plot(data_bincenter, fit_value_at_bincenter, '-r')
+    else:
+        fit_value_at_bincenter = PDF.pdf(data_bincenter, norm_range=fit_range) * N * scale
+        ax1.plot(data_bincenter, fit_value_at_bincenter, '-r')
 
     # plot the residuals
-    residuals = (data_hist - PDF.pdf(data_bincenter, norm_range=fit_range).numpy() * N * scale) / np.sqrt(data_hist)
+    residuals = (data_hist - fit_value_at_bincenter) / np.sqrt(data_hist)
     ax2.errorbar(data_bincenter, residuals, yerr=np.ones_like(residuals), fmt='o', color='black', markersize=3, capsize=3)
     ax2.set_xlim(ax1.get_xlim())
 

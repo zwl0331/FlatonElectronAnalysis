@@ -208,11 +208,13 @@ def main(args):
     # ----------------------------------------------------
     # Momentum resolution fit
     ## filter the data_np to be within the fit range
+    '''
     data_mc_bound_low = 101.7
     data_mc_bound_high = 110
     mask = (data_mc_np >= data_mc_bound_low) & (data_mc_np <= data_mc_bound_high)
     data_np = data_np[mask]
     data_mc_np = data_mc_np[mask]
+    '''
     ## plot the momentum distribution
     #fig, ax = plot_module.plotmom_data_only(data_mc_np, (95, 105))
     #plt.show()
@@ -235,8 +237,8 @@ def main(args):
     with open("resolution_fit_result.txt", "w") as f:
         f.write(str(result))
 
-    plot_module.plot_fit_result(diff, (-15, 1), PDF, N)
-    #plt.savefig("plot_resolution_fit_result.png")
+    plot_module.plot_fit_result(diff, (-15, 1), PDF, N, use_integrated=True)
+    plt.savefig("plot_resolution_fit_result.png")
     plt.show()
 
     print("Performing statistical tests on the resolution fit...")
