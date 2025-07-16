@@ -1,0 +1,34 @@
+1078 training steps at reco and 2142 steps at gen
+ITERATION: 1
+RUNNING STEP 1
+Creating cached data from step 1
+################################################################################
+Train events used: 137984, Test events used: 27596
+################################################################################
+Last val loss 9.1617431640625
+INFO: Dumping training history ...
+RUNNING STEP 2
+Creating cached data from step 2
+################################################################################
+Train events used: 274176, Test events used: 54835
+################################################################################
+Last val loss 4.3336501121521
+INFO: Dumping training history ...
+ITERATION: 2
+RUNNING STEP 1
+################################################################################
+Train events used: 137984, Test events used: 27596
+################################################################################
+Last val loss 7.88776159286499
+INFO: Dumping training history ...
+RUNNING STEP 2
+################################################################################
+Train events used: 274176, Test events used: 54835
+################################################################################
+Last val loss 4.533453464508057
+INFO: Dumping training history ...
+ITERATION: 3
+RUNNING STEP 1
+################################################################################
+Train events used: 137984, Test events used: 27596
+################################################################################
